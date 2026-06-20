@@ -100,6 +100,8 @@ class AppPageScaffold extends StatelessWidget {
   final List<Widget>? actions;
   final List<Widget> children;
   final Widget? floatingActionButton;
+  final bool fitContent;
+  final double bottomInset;
 
   const AppPageScaffold({
     super.key,
@@ -108,6 +110,8 @@ class AppPageScaffold extends StatelessWidget {
     this.actions,
     required this.children,
     this.floatingActionButton,
+    this.fitContent = false,
+    this.bottomInset = 100,
   });
 
   @override
@@ -129,18 +133,24 @@ class AppPageScaffold extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 8, 4),
+                padding: EdgeInsets.fromLTRB(16, fitContent ? 2 : 8, 12, fitContent ? 2 : 4),
                 child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(title, style: AppTypography.titleLarge()),
+                          Text(
+                            title,
+                            style: AppTypography.titleLarge().copyWith(fontSize: fitContent ? 20 : 22),
+                          ),
                           if (subtitle != null) ...[
-                            const SizedBox(height: 4),
-                            Text(subtitle!, style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13)),
+                            const SizedBox(height: 2),
+                            Text(
+                              subtitle!,
+                              style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+                            ),
                           ],
                         ],
                       ),
@@ -150,10 +160,18 @@ class AppPageScaffold extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                  children: children,
-                ),
+                child: fitContent
+                    ? Padding(
+                        padding: EdgeInsets.fromLTRB(16, 4, 16, bottomInset),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: children,
+                        ),
+                      )
+                    : ListView(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                        children: children,
+                      ),
               ),
             ],
           ),

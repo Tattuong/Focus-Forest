@@ -14,8 +14,6 @@ import '../../widgets/tree_widget.dart';
 class FocusScreen extends StatelessWidget {
   const FocusScreen({super.key});
 
-  static const _kNavClearance = 72.0;
-
   @override
   Widget build(BuildContext context) {
     final focus = context.watch<FocusProvider>();
@@ -34,7 +32,7 @@ class FocusScreen extends StatelessWidget {
 
     return AppPageScaffold(
       fitContent: true,
-      bottomInset: _kNavClearance,
+      bottomInset: 12,
       showLogo: false,
       title: AppStrings.t(context, 'focusTitle'),
       subtitle: _phaseLabel(context, focus.phase),
@@ -187,27 +185,36 @@ class _ActionButtons extends StatelessWidget {
     final showStop = focus.isRunning || focus.isPaused;
     final isPrimary = !focus.isRunning;
 
+    final buttonStyle = ButtonStyle(
+      minimumSize: const WidgetStatePropertyAll(Size(0, 48)),
+      padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+      elevation: const WidgetStatePropertyAll(0),
+      shape: WidgetStatePropertyAll(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    );
+
     return Row(
       children: [
         if (showStop) ...[
           Expanded(
-            child: SizedBox(
-              height: 44,
-              child: OutlinedButton(
-                onPressed: focus.stop,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.onSurfaceVariant,
-                  side: BorderSide(color: AppColors.onSurfaceVariant.withValues(alpha: 0.22)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            child: OutlinedButton(
+              onPressed: focus.stop,
+              style: buttonStyle.copyWith(
+                foregroundColor: const WidgetStatePropertyAll(AppColors.onSurfaceVariant),
+                side: WidgetStatePropertyAll(
+                  BorderSide(color: AppColors.onSurfaceVariant.withValues(alpha: 0.22)),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.stop_rounded, size: 18),
-                    const SizedBox(width: 6),
-                    Text(AppStrings.t(context, 'stop'), style: const TextStyle(fontWeight: FontWeight.w600)),
-                  ],
-                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.stop_rounded, size: 18),
+                  const SizedBox(width: 6),
+                  Text(AppStrings.t(context, 'stop'), style: const TextStyle(fontWeight: FontWeight.w600)),
+                ],
               ),
             ),
           ),
@@ -215,41 +222,36 @@ class _ActionButtons extends StatelessWidget {
         ],
         Expanded(
           flex: showStop ? 2 : 1,
-          child: SizedBox(
-            height: 44,
-            child: FilledButton(
-              onPressed: () {
-                if (focus.isRunning) {
-                  focus.pause();
-                } else if (focus.isPaused) {
-                  focus.resume();
-                } else if (focus.isCompleted && focus.phase != TimerPhase.focus) {
-                  focus.skipBreak();
-                } else {
-                  focus.start();
-                }
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: isPrimary ? primary : primary.withValues(alpha: 0.88),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    focus.isRunning
-                        ? Icons.pause_rounded
-                        : focus.isCompleted && focus.phase != TimerPhase.focus
-                            ? Icons.skip_next_rounded
-                            : Icons.play_arrow_rounded,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(_label(context, focus), style: const TextStyle(fontWeight: FontWeight.w700)),
-                ],
-              ),
+          child: FilledButton(
+            onPressed: () {
+              if (focus.isRunning) {
+                focus.pause();
+              } else if (focus.isPaused) {
+                focus.resume();
+              } else if (focus.isCompleted && focus.phase != TimerPhase.focus) {
+                focus.skipBreak();
+              } else {
+                focus.start();
+              }
+            },
+            style: buttonStyle.copyWith(
+              backgroundColor: WidgetStatePropertyAll(isPrimary ? primary : primary.withValues(alpha: 0.88)),
+              foregroundColor: const WidgetStatePropertyAll(Colors.white),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  focus.isRunning
+                      ? Icons.pause_rounded
+                      : focus.isCompleted && focus.phase != TimerPhase.focus
+                          ? Icons.skip_next_rounded
+                          : Icons.play_arrow_rounded,
+                  size: 20,
+                ),
+                const SizedBox(width: 6),
+                Text(_label(context, focus), style: const TextStyle(fontWeight: FontWeight.w700)),
+              ],
             ),
           ),
         ),

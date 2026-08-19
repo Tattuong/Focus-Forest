@@ -167,7 +167,7 @@ class ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateMi
                 _gridSliver(items)
               else
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (_, i) => Padding(

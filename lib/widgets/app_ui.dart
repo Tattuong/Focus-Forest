@@ -103,7 +103,7 @@ class AppPageScaffold extends StatelessWidget {
     required this.children,
     this.floatingActionButton,
     this.fitContent = false,
-    this.bottomInset = 100,
+    this.bottomInset = 16,
     this.showLogo = false,
     this.titleTrailing,
   });
@@ -186,7 +186,7 @@ class AppPageScaffold extends StatelessWidget {
                         ),
                       )
                     : ListView(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                         children: children,
                       ),
               ),

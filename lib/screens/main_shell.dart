@@ -42,60 +42,62 @@ class MainShellState extends State<MainShell> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: IndexedStack(index: _index, children: screens),
-      extendBody: true,
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-            child: Row(
-              children: [
-                _NavItem(
-                  index: 0,
-                  currentIndex: _index,
-                  icon: Icons.timer_outlined,
-                  activeIcon: Icons.timer_rounded,
-                  label: AppStrings.t(context, 'navFocus'),
-                  onTap: () => setState(() => _index = 0),
-                ),
-                _NavItem(
-                  index: 1,
-                  currentIndex: _index,
-                  icon: Icons.park_outlined,
-                  activeIcon: Icons.park_rounded,
-                  label: AppStrings.t(context, 'navForest'),
-                  onTap: () => setState(() => _index = 1),
-                ),
-                _NavItem(
-                  index: 2,
-                  currentIndex: _index,
-                  icon: Icons.storefront_outlined,
-                  activeIcon: Icons.storefront_rounded,
-                  label: AppStrings.t(context, 'navShop'),
-                  onTap: () => setState(() => _index = 2),
-                  accent: AppColors.coin,
-                ),
-                _NavItem(
-                  index: 3,
-                  currentIndex: _index,
-                  icon: Icons.settings_outlined,
-                  activeIcon: Icons.settings_rounded,
-                  label: AppStrings.t(context, 'navSettings'),
-                  onTap: () => setState(() => _index = 3),
+      bottomNavigationBar: ColoredBox(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: SafeArea(
+          minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
                 ),
               ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+              child: Row(
+                children: [
+                  _NavItem(
+                    index: 0,
+                    currentIndex: _index,
+                    icon: Icons.timer_outlined,
+                    activeIcon: Icons.timer_rounded,
+                    label: AppStrings.t(context, 'navFocus'),
+                    onTap: () => setState(() => _index = 0),
+                  ),
+                  _NavItem(
+                    index: 1,
+                    currentIndex: _index,
+                    icon: Icons.park_outlined,
+                    activeIcon: Icons.park_rounded,
+                    label: AppStrings.t(context, 'navForest'),
+                    onTap: () => setState(() => _index = 1),
+                  ),
+                  _NavItem(
+                    index: 2,
+                    currentIndex: _index,
+                    icon: Icons.storefront_outlined,
+                    activeIcon: Icons.storefront_rounded,
+                    label: AppStrings.t(context, 'navShop'),
+                    onTap: () => setState(() => _index = 2),
+                    accent: AppColors.coin,
+                  ),
+                  _NavItem(
+                    index: 3,
+                    currentIndex: _index,
+                    icon: Icons.settings_outlined,
+                    activeIcon: Icons.settings_rounded,
+                    label: AppStrings.t(context, 'navSettings'),
+                    onTap: () => setState(() => _index = 3),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

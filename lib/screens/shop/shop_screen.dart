@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -136,23 +134,10 @@ class ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateMi
   @override
   Widget build(BuildContext context) {
     final shop = context.watch<ShopProvider>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final items = _itemsFor(_tab);
-    final bg = isDark ? AppColors.darkBackground : AppColors.background;
+    final bg = Theme.of(context).scaffoldBackgroundColor;
 
-    final body = Stack(
-      children: [
-        Positioned(
-          top: -120,
-          left: -80,
-          child: GlowOrb(color: AppColors.primary.withValues(alpha: isDark ? 0.35 : 0.22), size: 260),
-        ),
-        Positioned(
-          top: 40,
-          right: -60,
-          child: GlowOrb(color: AppColors.accent.withValues(alpha: isDark ? 0.25 : 0.15), size: 200),
-        ),
-        SafeArea(
+    final body = SafeArea(
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
@@ -195,8 +180,6 @@ class ShopScreenState extends State<ShopScreen> with SingleTickerProviderStateMi
                 ),
             ],
           ),
-        ),
-      ],
     );
 
     if (widget.embedded) {
@@ -224,7 +207,7 @@ class _RewardsHeader extends StatelessWidget {
             IconButton(
               onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-              style: IconButton.styleFrom(backgroundColor: AppColors.primary.withValues(alpha: 0.08)),
+              style: IconButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08)),
             ),
           Expanded(
             child: Column(
@@ -232,7 +215,7 @@ class _RewardsHeader extends StatelessWidget {
               children: [
                 Text(
                   AppStrings.t(context, 'shopTitle'),
-                  style: AppTypography.displayLarge().copyWith(fontSize: 28, height: 1.1),
+                  style: AppTypography.titleLarge().copyWith(fontSize: 24, height: 1.1),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -268,26 +251,18 @@ class _StarBalanceCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Container(
-            padding: const EdgeInsets.all(22),
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? [const Color(0xFF1A2235), const Color(0xFF252D45)]
-                    : [Colors.white.withValues(alpha: 0.92), Colors.white.withValues(alpha: 0.75)],
-              ),
-              border: Border.all(color: (isDark ? Colors.white : AppColors.primary).withValues(alpha: 0.08)),
+              borderRadius: BorderRadius.circular(20),
+              color: isDark ? Theme.of(context).colorScheme.surface : Colors.white,
+              border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06)),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: isDark ? 0.15 : 0.08),
-                  blurRadius: 24,
-                  offset: const Offset(0, 12),
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
@@ -330,7 +305,7 @@ class _StarBalanceCard extends StatelessWidget {
                         children: [
                           Text(
                             '${shop.coins}',
-                            style: AppTypography.displayLarge().copyWith(fontSize: 40),
+                            style: AppTypography.displayLarge().copyWith(fontSize: 32),
                           ),
                           const SizedBox(width: 6),
                           Text(AppStrings.t(context, 'coinsLabel'), style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14)),
@@ -341,7 +316,7 @@ class _StarBalanceCard extends StatelessWidget {
                 ),
                 if (!shop.isBillingDisabled)
                   Material(
-                    color: AppColors.primary,
+                    color: Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(16),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(16),
@@ -366,8 +341,7 @@ class _StarBalanceCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -428,7 +402,7 @@ class _MissionCarouselState extends State<_MissionCarousel> {
               ),
               _MissionTile(
                 icon: Icons.timer_outlined,
-                iconColor: AppColors.focus,
+                iconColor: Theme.of(context).colorScheme.primary,
                 title: AppStrings.t(context, 'earnStepFocus'),
                 subtitle: AppStrings.t(context, 'earnStepFocusDesc'),
                 done: false,
@@ -443,7 +417,7 @@ class _MissionCarouselState extends State<_MissionCarousel> {
               if (!widget.shop.isBillingDisabled)
                 _MissionTile(
                   icon: Icons.bolt_rounded,
-                  iconColor: AppColors.accent,
+                  iconColor: Theme.of(context).colorScheme.secondary,
                   title: AppStrings.t(context, 'shopBuyStars'),
                   subtitle: AppStrings.t(context, 'shopBuyStarsDesc'),
                   actionLabel: AppStrings.t(context, 'buyWithGooglePlay'),
@@ -503,7 +477,7 @@ class _MissionTile extends StatelessWidget {
       margin: const EdgeInsets.only(right: 12),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
+        color: isDark ? Theme.of(context).colorScheme.surface : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: iconColor.withValues(alpha: 0.15)),
         boxShadow: [
@@ -604,6 +578,7 @@ class _TabStrip extends StatelessWidget {
               itemBuilder: (context, i) {
                 final (tab, key) = tabs[i];
                 final active = selected == tab;
+                final primary = Theme.of(context).colorScheme.primary;
                 return GestureDetector(
                   onTap: () => onSelect(tab),
                   child: AnimatedContainer(
@@ -612,10 +587,10 @@ class _TabStrip extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: active ? AppColors.primary : Colors.transparent,
+                      color: active ? primary : Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: active ? AppColors.primary : AppColors.onSurfaceVariant.withValues(alpha: 0.2),
+                        color: active ? primary : AppColors.onSurfaceVariant.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Text(
@@ -648,6 +623,7 @@ class _BentoRewardCard extends StatelessWidget {
     final owned = shop.ownsItem(item.id);
     final isActive = _RewardActions.itemIsActive(shop, item);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = Theme.of(context).colorScheme.primary;
 
     return Material(
       color: Colors.transparent,
@@ -656,13 +632,13 @@ class _BentoRewardCard extends StatelessWidget {
         onTap: owned ? null : () => _RewardActions.tryPurchase(context, shop, item),
         child: Ink(
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : Colors.white,
+            color: isDark ? Theme.of(context).colorScheme.surface : Colors.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: isActive ? AppColors.primary : (isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.04)),
+              color: isActive ? primary : (isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.04)),
               width: isActive ? 2 : 1,
             ),
-            boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 6))],
+            boxShadow: [BoxShadow(color: primary.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 6))],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -744,13 +720,14 @@ class _WideRewardCard extends StatelessWidget {
     final owned = shop.ownsItem(item.id);
     final isActive = _RewardActions.itemIsActive(shop, item);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = Theme.of(context).colorScheme.primary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 0),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
+        color: isDark ? Theme.of(context).colorScheme.surface : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isActive ? AppColors.primary : Colors.transparent, width: 2),
+        border: Border.all(color: isActive ? primary : Colors.transparent, width: 2),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.05), blurRadius: 16, offset: const Offset(0, 6))],
       ),
       child: Padding(
@@ -823,8 +800,8 @@ class _ItemVisual extends StatelessWidget {
     }
 
     final tint = switch (item.category) {
-      ShopItemCategory.premium => AppColors.accent,
-      ShopItemCategory.features => AppColors.primary,
+      ShopItemCategory.premium => Theme.of(context).colorScheme.secondary,
+      ShopItemCategory.features => Theme.of(context).colorScheme.primary,
       _ => AppColors.coin,
     };
 
@@ -938,7 +915,7 @@ class _RewardActions extends StatelessWidget {
                   },
             child: Text(
               '${AppStrings.t(context, 'removeAdsIap')}${shop.billing.removeAdsProduct != null ? ' · ${shop.billing.removeAdsProduct!.price}' : ''}',
-              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: dense ? 10 : 11),
+              style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, fontSize: dense ? 10 : 11),
             ),
           ),
         ],
@@ -1021,8 +998,9 @@ class _ActionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return Material(
-      color: filled ? AppColors.primary : Colors.transparent,
+      color: filled ? primary : Colors.transparent,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: onTap,
@@ -1031,14 +1009,14 @@ class _ActionChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: filled ? null : Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
+            border: filled ? null : Border.all(color: primary.withValues(alpha: 0.4)),
           ),
           child: Text(
             label,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: filled ? Colors.white : AppColors.primary,
+              color: filled ? Colors.white : primary,
             ),
           ),
         ),

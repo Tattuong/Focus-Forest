@@ -3,7 +3,7 @@ description: Focus Forest - Pomodoro timer that grows your forest with every foc
 
 publish_to: "none"
 
-version: 1.0.1+2
+version: 1.0.2+3
 
 environment:
   sdk: ">=3.4.3 <4.0.0"
@@ -34,8 +34,9 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: assets/logo.png
-  adaptive_icon_background: "#166534"
+  adaptive_icon_background: "#064E3B"
   adaptive_icon_foreground: assets/logo.png
+  adaptive_icon_foreground_inset: 0
   remove_alpha_ios: true
 
 flutter:

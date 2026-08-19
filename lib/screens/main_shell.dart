@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
@@ -34,7 +32,6 @@ class MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final preset = Theme.of(context).colorScheme;
     final screens = [
       const FocusScreen(),
       const ForestScreen(),
@@ -43,62 +40,62 @@ class MainShellState extends State<MainShell> {
     ];
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: IndexedStack(index: _index, children: screens),
       extendBody: true,
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                color: (isDark ? AppColors.darkSurface : Colors.white).withValues(alpha: 0.92),
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: preset.primary.withValues(alpha: 0.1)),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.1),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              child: Row(
-                children: [
-                  _NavItem(
-                    icon: Icons.timer_outlined,
-                    activeIcon: Icons.timer_rounded,
-                    label: AppStrings.t(context, 'navFocus'),
-                    active: _index == 0,
-                    onTap: () => setState(() => _index = 0),
-                  ),
-                  _NavItem(
-                    icon: Icons.forest_outlined,
-                    activeIcon: Icons.forest_rounded,
-                    label: AppStrings.t(context, 'navForest'),
-                    active: _index == 1,
-                    onTap: () => setState(() => _index = 1),
-                  ),
-                  _NavItem(
-                    icon: Icons.stars_outlined,
-                    activeIcon: Icons.stars_rounded,
-                    label: AppStrings.t(context, 'navShop'),
-                    active: _index == 2,
-                    onTap: () => setState(() => _index = 2),
-                    accent: AppColors.coin,
-                  ),
-                  _NavItem(
-                    icon: Icons.settings_outlined,
-                    activeIcon: Icons.settings_rounded,
-                    label: AppStrings.t(context, 'navSettings'),
-                    active: _index == 3,
-                    onTap: () => setState(() => _index = 3),
-                  ),
-                ],
-              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            child: Row(
+              children: [
+                _NavItem(
+                  index: 0,
+                  currentIndex: _index,
+                  icon: Icons.timer_outlined,
+                  activeIcon: Icons.timer_rounded,
+                  label: AppStrings.t(context, 'navFocus'),
+                  onTap: () => setState(() => _index = 0),
+                ),
+                _NavItem(
+                  index: 1,
+                  currentIndex: _index,
+                  icon: Icons.park_outlined,
+                  activeIcon: Icons.park_rounded,
+                  label: AppStrings.t(context, 'navForest'),
+                  onTap: () => setState(() => _index = 1),
+                ),
+                _NavItem(
+                  index: 2,
+                  currentIndex: _index,
+                  icon: Icons.storefront_outlined,
+                  activeIcon: Icons.storefront_rounded,
+                  label: AppStrings.t(context, 'navShop'),
+                  onTap: () => setState(() => _index = 2),
+                  accent: AppColors.coin,
+                ),
+                _NavItem(
+                  index: 3,
+                  currentIndex: _index,
+                  icon: Icons.settings_outlined,
+                  activeIcon: Icons.settings_rounded,
+                  label: AppStrings.t(context, 'navSettings'),
+                  onTap: () => setState(() => _index = 3),
+                ),
+              ],
             ),
           ),
         ),
@@ -108,21 +105,25 @@ class MainShellState extends State<MainShell> {
 }
 
 class _NavItem extends StatelessWidget {
+  final int index;
+  final int currentIndex;
   final IconData icon;
   final IconData activeIcon;
   final String label;
-  final bool active;
   final VoidCallback onTap;
   final Color? accent;
 
   const _NavItem({
+    required this.index,
+    required this.currentIndex,
     required this.icon,
     required this.activeIcon,
     required this.label,
-    required this.active,
     required this.onTap,
     this.accent,
   });
+
+  bool get active => index == currentIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -138,16 +139,16 @@ class _NavItem extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: active ? color.withValues(alpha: 0.12) : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(active ? activeIcon : icon, color: color, size: 21),
-              const SizedBox(height: 3),
+              Icon(active ? activeIcon : icon, color: color, size: 22),
+              const SizedBox(height: 4),
               Text(
                 label,
-                style: AppTypography.labelBold(color: color, size: 8),
+                style: AppTypography.labelBold(color: color, size: 10),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

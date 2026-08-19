@@ -79,10 +79,10 @@ class _CoinPurchaseSheetState extends State<_CoinPurchaseSheet> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
+        color: isDark ? Theme.of(context).colorScheme.surface : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
-          BoxShadow(color: AppColors.primary.withValues(alpha: 0.15), blurRadius: 32, offset: const Offset(0, -8)),
+          BoxShadow(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15), blurRadius: 32, offset: const Offset(0, -8)),
         ],
       ),
       child: SafeArea(
@@ -219,11 +219,10 @@ class _PackTile extends StatelessWidget {
     final shop = context.read<ShopProvider>();
     final coins = IapConstants.coinsForProduct(product.id);
     final packNum = IapConstants.coinPackIds.indexOf(product.id) + 1;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPopular = packNum == 5;
 
     return Material(
-      color: isDark ? AppColors.darkBackground : AppColors.surfaceVariant,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
@@ -232,7 +231,7 @@ class _PackTile extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
-            border: isPopular ? Border.all(color: AppColors.primary, width: 2) : null,
+            border: isPopular ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2) : null,
           ),
           child: Row(
             children: [
@@ -265,12 +264,12 @@ class _PackTile extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.15),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               'Popular',
-                              style: AppTypography.labelBold(color: AppColors.primary, size: 9),
+                              style: AppTypography.labelBold(color: Theme.of(context).colorScheme.primary, size: 9),
                             ),
                           ),
                         ],

@@ -55,18 +55,22 @@ class AppThemePreset {
           ? ColorScheme.dark(
               primary: primaryLight,
               secondary: primary,
-              tertiary: AppColors.accent,
+              tertiary: AppColors.coin,
               surface: surfaceColor,
               onSurface: onSurface,
               onPrimary: AppColors.onPrimary,
+              onSurfaceVariant: const Color(0xFFB7C4BC),
+              surfaceContainerHighest: Color.lerp(darkBackground, primaryLight, 0.12)!,
             )
           : ColorScheme.light(
               primary: primary,
               secondary: primaryLight,
-              tertiary: AppColors.accent,
+              tertiary: AppColors.coin,
               surface: surfaceColor,
               onPrimary: AppColors.onPrimary,
               onSurface: onSurface,
+              onSurfaceVariant: AppColors.onSurfaceVariant,
+              surfaceContainerHighest: Color.lerp(background, primary, 0.08)!,
             ),
       textTheme: AppTypography.textTheme(brightness),
       appBarTheme: AppBarTheme(
@@ -80,33 +84,51 @@ class AppThemePreset {
         backgroundColor: isDark ? primaryLight : primary,
         foregroundColor: AppColors.onPrimary,
         elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: isDark ? darkSurface : AppColors.surfaceVariant,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: primary.withValues(alpha: 0.08)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: primary, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: isDark ? primaryLight : primary,
+        linearTrackColor: primary.withValues(alpha: 0.12),
+        circularTrackColor: primary.withValues(alpha: 0.12),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: isDark ? primaryLight : primary,
           foregroundColor: AppColors.onPrimary,
+          elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: isDark ? primaryLight : primary,
+          side: BorderSide(color: primary.withValues(alpha: 0.28)),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       ),
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         side: BorderSide(color: primary.withValues(alpha: 0.15)),
+      ),
+      dividerTheme: DividerThemeData(
+        color: primary.withValues(alpha: isDark ? 0.12 : 0.08),
+        thickness: 1,
       ),
     );
   }
@@ -119,7 +141,7 @@ class AppThemePresets {
     id: 'theme_default',
     primary: AppColors.primary,
     primaryLight: AppColors.primaryLight,
-    background: AppColors.background,
+    background: Color(0xFFF6F3EE),
     surface: AppColors.surface,
     darkBackground: AppColors.darkBackground,
     darkSurface: AppColors.darkSurface,
@@ -250,6 +272,35 @@ class TreeStyle {
     this.accentColor = AppColors.primary,
     this.glassEffect = false,
   });
+
+  TreeStyle copyWith({
+    Color? trunkColor,
+    Color? foliageColor,
+    Color? foliageLight,
+    Color? accentColor,
+  }) {
+    return TreeStyle(
+      id: id,
+      trunkColor: trunkColor ?? this.trunkColor,
+      foliageColor: foliageColor ?? this.foliageColor,
+      foliageLight: foliageLight ?? this.foliageLight,
+      borderRadius: borderRadius,
+      borderWidth: borderWidth,
+      borderColor: borderColor,
+      accentColor: accentColor ?? this.accentColor,
+      glassEffect: glassEffect,
+    );
+  }
+
+  /// Default grove follows the shop theme; other skins keep their own palette.
+  TreeStyle themed(ColorScheme scheme) {
+    if (id != 'skin_default') return this;
+    return copyWith(
+      foliageColor: scheme.primary,
+      foliageLight: scheme.secondary,
+      accentColor: scheme.primary,
+    );
+  }
 
   static const TreeStyle defaultStyle = TreeStyle(
     id: 'skin_default',

@@ -14,6 +14,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     return Scaffold(
       body: AppDecorations.meshBackground(
         isDark: isDark,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

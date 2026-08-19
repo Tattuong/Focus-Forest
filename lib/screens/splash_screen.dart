@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../core/constants/app_colors.dart';
 import '../core/constants/app_strings.dart';
 import '../providers/focus_provider.dart';
 import '../providers/shop_provider.dart';
@@ -20,12 +19,14 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
   late final AnimationController _pulse;
   late final AnimationController _fade;
+  late final AnimationController _slide;
 
   @override
   void initState() {
     super.initState();
-    _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))..repeat(reverse: true);
-    _fade = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))..forward();
+    _pulse = AnimationController(vsync: this, duration: const Duration(milliseconds: 2200))..repeat(reverse: true);
+    _fade = AnimationController(vsync: this, duration: const Duration(milliseconds: 1000))..forward();
+    _slide = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..forward();
     _bootstrap();
   }
 
@@ -40,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     final prefs = await SharedPreferences.getInstance();
     final seenOnboarding = prefs.getBool('ff_onboarding_seen') ?? false;
 
-    await Future.delayed(const Duration(milliseconds: 900));
+    await Future.delayed(const Duration(milliseconds: 1100));
     if (!mounted) return;
 
     final next = seenOnboarding ? const MainShell() : const OnboardingScreen();
@@ -49,7 +50,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => next,
         transitionsBuilder: (_, anim, __, child) => FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 400),
+        transitionDuration: const Duration(milliseconds: 450),
       ),
     );
   }
@@ -58,62 +59,113 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   void dispose() {
     _pulse.dispose();
     _fade.dispose();
+    _slide.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final shop = context.watch<ShopProvider>();
+    final preset = shop.activeTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
       body: DecoratedBox(
-        decoration: const BoxDecoration(gradient: AppColors.splashGradient),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [preset.darkBackground, Color.lerp(preset.darkBackground, preset.primary, 0.35)!]
+                : [preset.darkBackground, preset.primary, preset.primaryLight],
+          ),
+        ),
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Positioned(top: -80, right: -60, child: _orb(AppColors.accent.withValues(alpha: 0.25), 240)),
-            Positioned(bottom: -40, left: -80, child: _orb(AppColors.accentAlt.withValues(alpha: 0.2), 200)),
             SafeArea(
               child: FadeTransition(
                 opacity: _fade,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AnimatedBuilder(
-                        animation: _pulse,
-                        builder: (_, child) => Transform.scale(scale: 1.0 + _pulse.value * 0.04, child: child),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
+                child: SlideTransition(
+                  position: Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero).animate(
+                    CurvedAnimation(parent: _slide, curve: Curves.easeOutCubic),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedBuilder(
+                          animation: _pulse,
+                          builder: (_, child) => Transform.scale(
+                            scale: 1.0 + _pulse.value * 0.035,
+                            child: child,
+                          ),
+                          child: Container(
+                            width: 140,
+                            height: 140,
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.35),
+                                  blurRadius: 40,
+                                  offset: const Offset(0, 16),
+                                ),
+                                BoxShadow(
+                                  color: primary.withValues(alpha: 0.28),
+                                  blurRadius: 48,
+                                  spreadRadius: -8,
+                                ),
+                              ],
+                            ),
+                            child: Image.asset('assets/logo.png', width: 140, height: 140, fit: BoxFit.cover),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        Text(
+                          AppStrings.t(context, 'appName'),
+                          style: AppTypography.displayLarge(color: Colors.white).copyWith(
+                            letterSpacing: -0.5,
+                            shadows: [
+                              Shadow(
                                 color: Colors.black.withValues(alpha: 0.25),
-                                blurRadius: 32,
-                                offset: const Offset(0, 12),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
-                          child: Image.asset('assets/logo.png', width: 128, height: 128, fit: BoxFit.cover),
                         ),
-                      ),
-                      const SizedBox(height: 28),
-                      Text(AppStrings.t(context, 'appName'), style: AppTypography.displayLarge(color: Colors.white)),
-                      const SizedBox(height: 10),
-                      Text(
-                        AppStrings.t(context, 'appTagline'),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.82), fontSize: 15, height: 1.4),
-                      ),
-                      const SizedBox(height: 48),
-                      SizedBox(
-                        width: 32,
-                        height: 32,
-                        child: CircularProgressIndicator(color: Colors.white.withValues(alpha: 0.9), strokeWidth: 2.5),
-                      ),
-                      const SizedBox(height: 14),
-                      Text(
-                        AppStrings.t(context, 'splashLoading'),
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.65), fontSize: 12),
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        Text(
+                          AppStrings.t(context, 'appTagline'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 15,
+                            height: 1.45,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 52),
+                        SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: CircularProgressIndicator(
+                            color: Colors.white.withValues(alpha: 0.92),
+                            strokeWidth: 2.5,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          AppStrings.t(context, 'splashLoading'),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.65),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -123,10 +175,4 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
   }
-
-  Widget _orb(Color color, double size) => Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-      );
 }

@@ -15,10 +15,15 @@ class FocusProvider extends ChangeNotifier {
   static const _lastSessionDateKey = 'ff_last_session_date';
   static const _focusDurationKey = 'ff_focus_duration';
   static const _whiteNoiseKey = 'ff_white_noise';
+  static const _dailyGoalKey = 'ff_daily_goal';
+  static const _shortBreakKey = 'ff_short_break';
+  static const _longBreakKey = 'ff_long_break';
+  static const _tagKey = 'ff_session_tag';
 
   static const int defaultFocusMinutes = 25;
-  static const int shortBreakMinutes = 5;
-  static const int longBreakMinutes = 15;
+  static const int defaultShortBreakMinutes = 5;
+  static const int defaultLongBreakMinutes = 15;
+  static const int defaultDailyGoalMinutes = 60;
 
   final _uuid = const Uuid();
 
@@ -29,8 +34,12 @@ class FocusProvider extends ChangeNotifier {
   int _remainingSeconds = defaultFocusMinutes * 60;
   int _totalSeconds = defaultFocusMinutes * 60;
   int _focusDurationMinutes = defaultFocusMinutes;
+  int _shortBreakMinutes = defaultShortBreakMinutes;
+  int _longBreakMinutes = defaultLongBreakMinutes;
+  int _dailyGoalMinutes = defaultDailyGoalMinutes;
   int _completedFocusToday = 0;
   int _currentStreak = 0;
+  String _selectedTag = FocusTag.study;
   bool _whiteNoiseEnabled = false;
   Timer? _ticker;
   ShopProvider? _shop;
@@ -42,8 +51,13 @@ class FocusProvider extends ChangeNotifier {
   int get remainingSeconds => _remainingSeconds;
   int get totalSeconds => _totalSeconds;
   int get focusDurationMinutes => _focusDurationMinutes;
+  int get shortBreakMinutes => _shortBreakMinutes;
+  int get longBreakMinutes => _longBreakMinutes;
+  int get dailyGoalMinutes => _dailyGoalMinutes;
+  String get selectedTag => _selectedTag;
   bool get whiteNoiseEnabled => _whiteNoiseEnabled;
   double get progress => _totalSeconds == 0 ? 0 : 1 - (_remainingSeconds / _totalSeconds);
+  double get dailyGoalProgress => _dailyGoalMinutes == 0 ? 0 : (_stats.todayMinutes / _dailyGoalMinutes).clamp(0.0, 1.0);
 
   bool get isRunning => _timerState == TimerState.running;
   bool get isPaused => _timerState == TimerState.paused;
@@ -71,18 +85,20 @@ class FocusProvider extends ChangeNotifier {
     }
     _currentStreak = await StorageService.instance.getInt(_streakKey) ?? 0;
     _focusDurationMinutes = await StorageService.instance.getInt(_focusDurationKey) ?? defaultFocusMinutes;
+    _shortBreakMinutes = await StorageService.instance.getInt(_shortBreakKey) ?? defaultShortBreakMinutes;
+    _longBreakMinutes = await StorageService.instance.getInt(_longBreakKey) ?? defaultLongBreakMinutes;
+    _dailyGoalMinutes = await StorageService.instance.getInt(_dailyGoalKey) ?? defaultDailyGoalMinutes;
+    _selectedTag = await StorageService.instance.getString(_tagKey) ?? FocusTag.study;
     _whiteNoiseEnabled = await StorageService.instance.getBool(_whiteNoiseKey) ?? false;
     _recomputeStats();
     _resetPhase(TimerPhase.focus);
     notifyListeners();
   }
 
-  List<int> get availableDurations {
-    if (_shop?.hasCustomTimer == true) {
-      return [15, 25, 45, 60];
-    }
-    return [defaultFocusMinutes];
-  }
+  List<int> get availableDurations => const [15, 25, 45, 60];
+  List<int> get availableGoals => const [25, 50, 60, 90, 120];
+  List<int> get availableShortBreaks => const [5, 10, 15];
+  List<int> get availableLongBreaks => const [15, 20, 30];
 
   Future<void> setFocusDuration(int minutes) async {
     if (!availableDurations.contains(minutes)) return;
@@ -91,6 +107,40 @@ class FocusProvider extends ChangeNotifier {
     if (_timerState == TimerState.idle) {
       _resetPhase(TimerPhase.focus);
     }
+    notifyListeners();
+  }
+
+  Future<void> setShortBreak(int minutes) async {
+    if (!availableShortBreaks.contains(minutes)) return;
+    _shortBreakMinutes = minutes;
+    await StorageService.instance.saveInt(_shortBreakKey, minutes);
+    if (_timerState == TimerState.idle && _phase == TimerPhase.shortBreak) {
+      _resetPhase(TimerPhase.shortBreak);
+    }
+    notifyListeners();
+  }
+
+  Future<void> setLongBreak(int minutes) async {
+    if (!availableLongBreaks.contains(minutes)) return;
+    _longBreakMinutes = minutes;
+    await StorageService.instance.saveInt(_longBreakKey, minutes);
+    if (_timerState == TimerState.idle && _phase == TimerPhase.longBreak) {
+      _resetPhase(TimerPhase.longBreak);
+    }
+    notifyListeners();
+  }
+
+  Future<void> setDailyGoal(int minutes) async {
+    if (!availableGoals.contains(minutes)) return;
+    _dailyGoalMinutes = minutes;
+    await StorageService.instance.saveInt(_dailyGoalKey, minutes);
+    notifyListeners();
+  }
+
+  Future<void> setSelectedTag(String tag) async {
+    if (!FocusTag.all.contains(tag)) return;
+    _selectedTag = tag;
+    await StorageService.instance.saveString(_tagKey, tag);
     notifyListeners();
   }
 
@@ -164,6 +214,7 @@ class FocusProvider extends ChangeNotifier {
       completedAt: now,
       durationSeconds: _totalSeconds - _remainingSeconds,
       completed: completed,
+      tag: _selectedTag,
     );
     _sessions.insert(0, session);
     if (_sessions.length > 500) {
@@ -198,8 +249,8 @@ class FocusProvider extends ChangeNotifier {
     _phase = phase;
     final minutes = switch (phase) {
       TimerPhase.focus => _focusDurationMinutes,
-      TimerPhase.shortBreak => shortBreakMinutes,
-      TimerPhase.longBreak => longBreakMinutes,
+      TimerPhase.shortBreak => _shortBreakMinutes,
+      TimerPhase.longBreak => _longBreakMinutes,
     };
     _totalSeconds = minutes * 60;
     _remainingSeconds = _totalSeconds;
@@ -237,13 +288,49 @@ class FocusProvider extends ChangeNotifier {
       }
     }
 
+    var weekMinutes = 0;
+    var bestDay = 0;
+    for (final day in last7Days) {
+      weekMinutes += day.minutes;
+      if (day.minutes > bestDay) bestDay = day.minutes;
+    }
+
     _stats = FocusStats(
       totalSessions: _sessions.where((e) => e.completed).length,
       totalMinutes: totalMinutes,
       todayMinutes: todayMinutes,
       currentStreak: _currentStreak,
       treesGrown: trees,
+      weekMinutes: weekMinutes,
+      bestDayMinutes: bestDay,
     );
+  }
+
+  List<DayMinutes> get last7Days {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return List.generate(7, (i) {
+      final day = today.subtract(Duration(days: 6 - i));
+      final key = _dateKey(day);
+      final mins = _sessions
+          .where((s) => s.completed && _dateKey(s.completedAt) == key)
+          .fold<int>(0, (sum, s) => sum + (s.durationSeconds / 60).round());
+      return DayMinutes(day: day, minutes: mins);
+    });
+  }
+
+  List<FocusAchievement> get achievements {
+    final trees = _stats.treesGrown;
+    final streak = _stats.currentStreak;
+    final total = _stats.totalMinutes;
+    return [
+      FocusAchievement(id: 'first', titleKey: 'achFirstTitle', descKey: 'achFirstDesc', unlocked: trees >= 1),
+      FocusAchievement(id: 'trees10', titleKey: 'achTreesTitle', descKey: 'achTreesDesc', unlocked: trees >= 10),
+      FocusAchievement(id: 'streak3', titleKey: 'achStreak3Title', descKey: 'achStreak3Desc', unlocked: streak >= 3),
+      FocusAchievement(id: 'streak7', titleKey: 'achStreak7Title', descKey: 'achStreak7Desc', unlocked: streak >= 7),
+      FocusAchievement(id: 'hour', titleKey: 'achHourTitle', descKey: 'achHourDesc', unlocked: total >= 60),
+      FocusAchievement(id: 'goal', titleKey: 'achGoalTitle', descKey: 'achGoalDesc', unlocked: _stats.todayMinutes >= _dailyGoalMinutes && _stats.todayMinutes > 0),
+    ];
   }
 
   Future<void> _saveSessions() async {

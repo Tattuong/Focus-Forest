@@ -13,6 +13,7 @@ class CoinBalanceChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final shop = context.watch<ShopProvider>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Material(
       color: Colors.transparent,
@@ -20,29 +21,24 @@ class CoinBalanceChip extends StatelessWidget {
         onTap: onTap ?? () => CoinPurchaseSheet.show(context),
         borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          padding: const EdgeInsets.fromLTRB(8, 6, 10, 6),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.coin.withValues(alpha: 0.22),
-                AppColors.accent.withValues(alpha: 0.12),
-              ],
-            ),
+            color: isDark ? Theme.of(context).colorScheme.surface : Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.coin.withValues(alpha: 0.4)),
+            border: Border.all(color: AppColors.coin.withValues(alpha: 0.35)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.star_rounded, color: AppColors.coin, size: 18),
+              const Icon(Icons.star_rounded, color: AppColors.coin, size: 16),
               const SizedBox(width: 5),
               Text(
                 '${shop.coins}',
-                style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.coin, fontSize: 14),
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.onSurface),
               ),
               if (!shop.isBillingDisabled) ...[
-                const SizedBox(width: 4),
-                Icon(Icons.add_circle_outline, color: AppColors.coin.withValues(alpha: 0.85), size: 16),
+                const SizedBox(width: 2),
+                Icon(Icons.add, color: AppColors.onSurfaceVariant.withValues(alpha: 0.7), size: 16),
               ],
             ],
           ),

@@ -30,29 +30,75 @@ class SettingsScreen extends StatelessWidget {
       title: AppStrings.t(context, 'settingsTitle'),
       subtitle: AppStrings.t(context, 'settingsSubtitle'),
       actions: [
-        Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: CoinBalanceChip(onTap: () => CoinPurchaseSheet.show(context)),
-        ),
+        CoinBalanceChip(onTap: () => CoinPurchaseSheet.show(context)),
       ],
       children: [
         AppSectionHeader(AppStrings.t(context, 'activeCustomization'), icon: Icons.palette_outlined),
-        AppSettingTile(
-          icon: Icons.palette_outlined,
-          title: AppStrings.t(context, 'activeTheme'),
-          subtitle: AppStrings.t(context, _themeNameKey(shop.activeThemeId)),
+        AppGlassCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              AppSettingTile(
+                wrapped: false,
+                icon: Icons.palette_outlined,
+                title: AppStrings.t(context, 'activeTheme'),
+                subtitle: AppStrings.t(context, _themeNameKey(shop.activeThemeId)),
+              ),
+              const Divider(height: 1, indent: 72),
+              AppSettingTile(
+                wrapped: false,
+                icon: Icons.layers_outlined,
+                title: AppStrings.t(context, 'activeBackground'),
+                subtitle: AppStrings.t(context, _bgNameKey(shop.activeBackgroundId)),
+              ),
+              const Divider(height: 1, indent: 72),
+              AppSettingTile(
+                wrapped: false,
+                icon: Icons.park_outlined,
+                title: AppStrings.t(context, 'activeSkin'),
+                subtitle: AppStrings.t(context, _skinNameKey(shop.activeSkinId)),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 8),
-        AppSettingTile(
-          icon: Icons.layers_outlined,
-          title: AppStrings.t(context, 'activeBackground'),
-          subtitle: AppStrings.t(context, _bgNameKey(shop.activeBackgroundId)),
-        ),
-        const SizedBox(height: 8),
-        AppSettingTile(
-          icon: Icons.park_outlined,
-          title: AppStrings.t(context, 'activeSkin'),
-          subtitle: AppStrings.t(context, _skinNameKey(shop.activeSkinId)),
+        AppSectionHeader(AppStrings.t(context, 'timerSettings'), icon: Icons.timer_outlined),
+        AppGlassCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              AppSettingTile(
+                wrapped: false,
+                icon: Icons.hourglass_bottom_outlined,
+                title: AppStrings.t(context, 'focusLength'),
+                subtitle: AppStrings.t(context, 'minutesValue', {'count': '${focus.focusDurationMinutes}'}),
+                onTap: () => _pickMinutes(context, focus.availableDurations, focus.focusDurationMinutes, focus.setFocusDuration),
+              ),
+              const Divider(height: 1, indent: 72),
+              AppSettingTile(
+                wrapped: false,
+                icon: Icons.coffee_outlined,
+                title: AppStrings.t(context, 'shortBreak'),
+                subtitle: AppStrings.t(context, 'minutesValue', {'count': '${focus.shortBreakMinutes}'}),
+                onTap: () => _pickMinutes(context, focus.availableShortBreaks, focus.shortBreakMinutes, focus.setShortBreak),
+              ),
+              const Divider(height: 1, indent: 72),
+              AppSettingTile(
+                wrapped: false,
+                icon: Icons.self_improvement_outlined,
+                title: AppStrings.t(context, 'longBreak'),
+                subtitle: AppStrings.t(context, 'minutesValue', {'count': '${focus.longBreakMinutes}'}),
+                onTap: () => _pickMinutes(context, focus.availableLongBreaks, focus.longBreakMinutes, focus.setLongBreak),
+              ),
+              const Divider(height: 1, indent: 72),
+              AppSettingTile(
+                wrapped: false,
+                icon: Icons.flag_outlined,
+                title: AppStrings.t(context, 'dailyGoalSetting'),
+                subtitle: AppStrings.t(context, 'minutesValue', {'count': '${focus.dailyGoalMinutes}'}),
+                onTap: () => _pickMinutes(context, focus.availableGoals, focus.dailyGoalMinutes, focus.setDailyGoal),
+              ),
+            ],
+          ),
         ),
         AppSectionHeader(AppStrings.t(context, 'appearance'), icon: Icons.dark_mode_outlined),
         AppGlassCard(
@@ -63,10 +109,10 @@ class SettingsScreen extends StatelessWidget {
               height: 40,
               margin: const EdgeInsets.only(left: 12),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.dark_mode_outlined, color: AppColors.primary, size: 20),
+              child: Icon(Icons.dark_mode_outlined, color: Theme.of(context).colorScheme.primary, size: 20),
             ),
             title: Text(AppStrings.t(context, 'darkMode'), style: AppTypography.labelBold(size: 14)),
             value: theme.isDarkMode,
@@ -74,42 +120,55 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
         AppSectionHeader(AppStrings.t(context, 'premiumFeatures'), icon: Icons.workspace_premium_outlined),
-        if (shop.hasStatsExport) ...[
-          AppSettingTile(
-            icon: Icons.file_download_outlined,
-            title: AppStrings.t(context, 'exportStats'),
-            subtitle: AppStrings.t(context, 'exportStatsDesc'),
-            trailing: const Icon(Icons.share_outlined, color: AppColors.primary),
-            onTap: () => _exportStats(context, focus, shop),
-          ),
-          const SizedBox(height: 8),
-        ] else
-          AppSettingTile(
-            icon: Icons.file_download_outlined,
-            title: AppStrings.t(context, 'exportStats'),
-            subtitle: AppStrings.t(context, 'exportLocked'),
-            onTap: () => MainShell.of(context)?.openShop(tab: ShopRewardsTab.features),
-          ),
+        AppGlassCard(
+          padding: EdgeInsets.zero,
+          child: shop.hasStatsExport
+              ? AppSettingTile(
+                  wrapped: false,
+                  icon: Icons.file_download_outlined,
+                  title: AppStrings.t(context, 'exportStats'),
+                  subtitle: AppStrings.t(context, 'exportStatsDesc'),
+                  trailing: Icon(Icons.share_outlined, color: Theme.of(context).colorScheme.primary),
+                  onTap: () => _exportStats(context, focus, shop),
+                )
+              : AppSettingTile(
+                  wrapped: false,
+                  icon: Icons.file_download_outlined,
+                  title: AppStrings.t(context, 'exportStats'),
+                  subtitle: AppStrings.t(context, 'exportLocked'),
+                  onTap: () => MainShell.of(context)?.openShop(tab: ShopRewardsTab.features),
+                ),
+        ),
         AppSectionHeader(AppStrings.t(context, 'other'), icon: Icons.more_horiz_rounded),
-        AppSettingTile(
-          icon: Icons.language_outlined,
-          title: AppStrings.t(context, 'language'),
-          subtitle: locale.isVietnamese ? AppStrings.t(context, 'vietnamese') : AppStrings.t(context, 'english'),
-          onTap: () => _pickLanguage(context, locale),
-        ),
-        const SizedBox(height: 8),
-        AppSettingTile(
-          icon: Icons.stars_rounded,
-          title: AppStrings.t(context, 'openShop'),
-          subtitle: AppStrings.t(context, 'openShopDesc'),
-          iconColor: AppColors.coin,
-          onTap: () => MainShell.of(context)?.openShop(),
-        ),
-        const SizedBox(height: 8),
-        AppSettingTile(
-          icon: Icons.privacy_tip_outlined,
-          title: AppStrings.t(context, 'privacyPolicy'),
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
+        AppGlassCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              AppSettingTile(
+                wrapped: false,
+                icon: Icons.language_outlined,
+                title: AppStrings.t(context, 'language'),
+                subtitle: locale.isVietnamese ? AppStrings.t(context, 'vietnamese') : AppStrings.t(context, 'english'),
+                onTap: () => _pickLanguage(context, locale),
+              ),
+              const Divider(height: 1, indent: 72),
+              AppSettingTile(
+                wrapped: false,
+                icon: Icons.storefront_outlined,
+                title: AppStrings.t(context, 'openShop'),
+                subtitle: AppStrings.t(context, 'openShopDesc'),
+                iconColor: AppColors.coin,
+                onTap: () => MainShell.of(context)?.openShop(),
+              ),
+              const Divider(height: 1, indent: 72),
+              AppSettingTile(
+                wrapped: false,
+                icon: Icons.privacy_tip_outlined,
+                title: AppStrings.t(context, 'privacyPolicy'),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 24),
         Center(
@@ -119,6 +178,53 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _pickMinutes(
+    BuildContext context,
+    List<int> options,
+    int current,
+    Future<void> Function(int) onPick,
+  ) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final isDark = Theme.of(ctx).brightness == Brightness.dark;
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? Theme.of(context).colorScheme.surface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 10),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.onSurfaceVariant.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                for (final m in options)
+                  ListTile(
+                    title: Text(AppStrings.t(context, 'minutesValue', {'count': '$m'})),
+                    trailing: current == m ? Icon(Icons.check_rounded, color: Theme.of(ctx).colorScheme.primary) : null,
+                    onTap: () async {
+                      await onPick(m);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -139,17 +245,26 @@ class SettingsScreen extends StatelessWidget {
         final isDark = Theme.of(ctx).brightness == Brightness.dark;
         return Container(
           decoration: BoxDecoration(
-            color: isDark ? AppColors.darkSurface : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            color: isDark ? Theme.of(context).colorScheme.surface : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
           ),
           child: SafeArea(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                const SizedBox(height: 10),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.onSurfaceVariant.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
                 ListTile(
                   leading: const Text('🇺🇸', style: TextStyle(fontSize: 22)),
                   title: Text(AppStrings.t(context, 'english')),
-                  trailing: !locale.isVietnamese ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
+                  trailing: !locale.isVietnamese ? Icon(Icons.check_rounded, color: Theme.of(ctx).colorScheme.primary) : null,
                   onTap: () async {
                     await locale.setEnglish();
                     if (ctx.mounted) Navigator.pop(ctx);
@@ -158,7 +273,7 @@ class SettingsScreen extends StatelessWidget {
                 ListTile(
                   leading: const Text('🇻🇳', style: TextStyle(fontSize: 22)),
                   title: Text(AppStrings.t(context, 'vietnamese')),
-                  trailing: locale.isVietnamese ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
+                  trailing: locale.isVietnamese ? Icon(Icons.check_rounded, color: Theme.of(ctx).colorScheme.primary) : null,
                   onTap: () async {
                     await locale.setVietnamese();
                     if (ctx.mounted) Navigator.pop(ctx);

@@ -60,7 +60,7 @@ class IapRemoteConfig {
 
   static IapRemoteConfig fallback() => const IapRemoteConfig(
         name: 'Focus Forest',
-        id: 'com.focusforest.app',
+        id: 'com.FocusForestMNG.FocusForest',
         version: '1.0.0',
         billingDisabled: false,
         code: 'FULL_IAP',

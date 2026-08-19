@@ -25,28 +25,40 @@ class AppTypography {
 }
 
 class AppDecorations {
+  static const double radiusCard = 18;
+  static const double radiusButton = 14;
+  static const double radiusChip = 12;
+
   static BoxDecoration glassCard({
     required bool isDark,
-    double radius = 24,
+    double radius = radiusCard,
     CardStyle? skin,
+    Color? tint,
+    Color? surface,
   }) {
     final style = skin ?? CardStyle.defaultStyle;
+    final accent = tint ?? style.accentColor;
+    final cardSurface = surface ?? (isDark ? AppColors.darkSurface : Colors.white);
+    final effectiveRadius = style.borderRadius > 0 ? style.borderRadius : radius;
     return BoxDecoration(
-      borderRadius: BorderRadius.circular(style.borderRadius > 0 ? style.borderRadius : radius),
-      color: style.glassEffect
-          ? (isDark ? AppColors.darkSurface.withValues(alpha: 0.65) : Colors.white.withValues(alpha: 0.72))
-          : (isDark ? AppColors.darkSurface.withValues(alpha: 0.88) : Colors.white.withValues(alpha: 0.94)),
+      borderRadius: BorderRadius.circular(effectiveRadius),
+      color: cardSurface.withValues(alpha: style.glassEffect ? (isDark ? 0.82 : 0.88) : (isDark ? 0.96 : 1)),
       border: Border.all(
         color: style.borderWidth > 0
             ? style.borderColor.withValues(alpha: isDark ? 0.5 : 0.7)
-            : (isDark ? Colors.white : AppColors.primary).withValues(alpha: 0.1),
+            : (isDark ? Colors.white : const Color(0xFF1D2A24)).withValues(alpha: isDark ? 0.08 : 0.06),
         width: style.borderWidth > 0 ? style.borderWidth : 1,
       ),
       boxShadow: [
         BoxShadow(
-          color: (style.borderWidth > 0 ? style.accentColor : AppColors.primary).withValues(alpha: isDark ? 0.14 : 0.07),
-          blurRadius: 24,
+          color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.05),
+          blurRadius: 18,
           offset: const Offset(0, 8),
+        ),
+        BoxShadow(
+          color: accent.withValues(alpha: isDark ? 0.06 : 0.03),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
         ),
       ],
     );
@@ -56,6 +68,7 @@ class AppDecorations {
     required bool isDark,
     required Widget child,
     LinearGradient? backgroundGradient,
+    Color? backgroundColor,
   }) {
     return Stack(
       fit: StackFit.expand,
@@ -63,32 +76,9 @@ class AppDecorations {
         if (backgroundGradient != null)
           DecoratedBox(decoration: BoxDecoration(gradient: backgroundGradient))
         else
-          ColoredBox(color: isDark ? AppColors.darkBackground : AppColors.background),
-        Positioned(top: -100, left: -60, child: GlowOrb(color: AppColors.primary.withValues(alpha: isDark ? 0.3 : 0.18), size: 280)),
-        Positioned(top: 80, right: -80, child: GlowOrb(color: AppColors.accent.withValues(alpha: isDark ? 0.22 : 0.12), size: 220)),
-        Positioned(bottom: 120, left: 40, child: GlowOrb(color: AppColors.accentAlt.withValues(alpha: isDark ? 0.15 : 0.08), size: 180)),
+          ColoredBox(color: backgroundColor ?? (isDark ? AppColors.darkBackground : AppColors.background)),
         child,
       ],
-    );
-  }
-}
-
-class GlowOrb extends StatelessWidget {
-  final Color color;
-  final double size;
-
-  const GlowOrb({super.key, required this.color, required this.size});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
-        child: const SizedBox.expand(),
-      ),
     );
   }
 }
@@ -102,6 +92,8 @@ class AppPageScaffold extends StatelessWidget {
   final Widget? floatingActionButton;
   final bool fitContent;
   final double bottomInset;
+  final bool showLogo;
+  final Widget? titleTrailing;
 
   const AppPageScaffold({
     super.key,
@@ -112,6 +104,8 @@ class AppPageScaffold extends StatelessWidget {
     this.floatingActionButton,
     this.fitContent = false,
     this.bottomInset = 100,
+    this.showLogo = false,
+    this.titleTrailing,
   });
 
   @override
@@ -121,6 +115,7 @@ class AppPageScaffold extends StatelessWidget {
     final preset = shop.activeTheme;
     final bg = shop.activeBackground;
     final useShopBg = shop.activeBackgroundId != 'bg_default';
+    final titleColor = isDark ? Colors.white : AppColors.onSurface;
 
     return Scaffold(
       backgroundColor: isDark ? preset.darkBackground : preset.background,
@@ -128,28 +123,50 @@ class AppPageScaffold extends StatelessWidget {
       body: AppDecorations.meshBackground(
         isDark: isDark,
         backgroundGradient: useShopBg ? bg.gradient : null,
+        backgroundColor: isDark ? preset.darkBackground : preset.background,
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(16, fitContent ? 2 : 8, 12, fitContent ? 2 : 4),
+                padding: EdgeInsets.fromLTRB(20, fitContent ? 10 : 14, 16, fitContent ? 8 : 12),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    if (showLogo) ...[
+                      Image.asset('assets/logo.png', width: 32, height: 32, fit: BoxFit.cover),
+                      const SizedBox(width: 12),
+                    ],
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            title,
-                            style: AppTypography.titleLarge().copyWith(fontSize: fitContent ? 20 : 22),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  title,
+                                  style: AppTypography.titleLarge(color: titleColor).copyWith(
+                                    fontSize: 22,
+                                    letterSpacing: -0.6,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (titleTrailing != null) titleTrailing!,
+                            ],
                           ),
                           if (subtitle != null) ...[
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 3),
                             Text(
                               subtitle!,
-                              style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+                              style: const TextStyle(
+                                color: AppColors.onSurfaceVariant,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                height: 1.3,
+                              ),
                             ),
                           ],
                         ],
@@ -219,7 +236,7 @@ class AppSectionHeader extends StatelessWidget {
       child: Row(
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 16, color: AppColors.primary),
+            Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 6),
           ],
           Text(label, style: AppTypography.labelBold(color: AppColors.onSurfaceVariant, size: 13)),
@@ -250,7 +267,13 @@ class AppGlassCard extends StatelessWidget {
     final effectiveRadius = skin.borderRadius > 0 ? skin.borderRadius : radius;
     final box = Container(
       padding: padding,
-      decoration: AppDecorations.glassCard(isDark: isDark, radius: effectiveRadius, skin: skin),
+      decoration: AppDecorations.glassCard(
+        isDark: isDark,
+        radius: effectiveRadius,
+        skin: skin,
+        tint: Theme.of(context).colorScheme.primary,
+        surface: Theme.of(context).colorScheme.surface,
+      ),
       child: skin.glassEffect
           ? ClipRRect(
               borderRadius: BorderRadius.circular(effectiveRadius),
@@ -276,6 +299,7 @@ class AppSettingTile extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
   final Color? iconColor;
+  final bool wrapped;
 
   const AppSettingTile({
     super.key,
@@ -285,30 +309,29 @@ class AppSettingTile extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.iconColor,
+    this.wrapped = true,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = iconColor ?? AppColors.primary;
-    return AppGlassCard(
-      padding: EdgeInsets.zero,
-      radius: 18,
+    final color = iconColor ?? Theme.of(context).colorScheme.primary;
+    final tile = ListTile(
       onTap: onTap,
-      child: ListTile(
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: color, size: 20),
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
         ),
-        title: Text(title, style: AppTypography.labelBold(size: 14)),
-        subtitle: subtitle != null ? Text(subtitle!, style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant)) : null,
-        trailing: trailing ?? (onTap != null ? Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant.withValues(alpha: 0.6)) : null),
+        child: Icon(icon, color: color, size: 20),
       ),
+      title: Text(title, style: AppTypography.labelBold(size: 14)),
+      subtitle: subtitle != null ? Text(subtitle!, style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant)) : null,
+      trailing: trailing ?? (onTap != null ? Icon(Icons.chevron_right_rounded, color: AppColors.onSurfaceVariant.withValues(alpha: 0.6)) : null),
     );
+    if (!wrapped) return tile;
+    return AppGlassCard(padding: EdgeInsets.zero, radius: 16, child: tile);
   }
 }
 
@@ -338,10 +361,10 @@ class AppEmptyState extends StatelessWidget {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(28),
               ),
-              child: Icon(icon, size: 44, color: AppColors.primary.withValues(alpha: 0.5)),
+              child: Icon(icon, size: 44, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)),
             ),
             const SizedBox(height: 16),
             Text(message, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14)),
@@ -418,6 +441,7 @@ class AppFormScreen extends StatelessWidget {
       body: AppDecorations.meshBackground(
         isDark: isDark,
         backgroundGradient: useShopBg ? shop.activeBackground.gradient : null,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

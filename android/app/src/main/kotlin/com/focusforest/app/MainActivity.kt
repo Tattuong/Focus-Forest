@@ -1,4 +1,4 @@
-package com.focusforest.app
+package com.FocusForestMNG.FocusForest
 
 import io.flutter.embedding.android.FlutterActivity
 
